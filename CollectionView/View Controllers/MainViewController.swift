@@ -21,6 +21,7 @@ class MainViewController: UICollectionViewController {
 		navigationController?.isToolbarHidden = true
 		// Edit
 		navigationItem.leftBarButtonItem = editButtonItem
+        installsStandardGestureForInteractiveMovement = true
 	}
 
 	override func didReceiveMemoryWarning() {
@@ -58,7 +59,14 @@ class MainViewController: UICollectionViewController {
 	
 	@IBAction func addItem() {
 		let index = dataSource.indexPathForNewRandomPark()
-		collectionView?.insertItems(at: [index])
+        let layout = collectionView?.collectionViewLayout as! FlowLayout
+        layout.addedItem = index
+        UIView.animate(withDuration: 1.0, delay: 0, usingSpringWithDamping: 0.65, initialSpringVelocity: 0.0, options: [], animations: {
+            self.collectionView?.insertItems(at: [index])
+        }) { finished in
+            layout.addedItem = nil
+        }
+
 	}
 	
 	@objc func refresh() {
@@ -68,7 +76,9 @@ class MainViewController: UICollectionViewController {
 	
 	@IBAction func deleteSelected() {
 		if let selected = collectionView?.indexPathsForSelectedItems {
-			dataSource.deleteItemsAtIndexPaths(selected)
+            let layout = collectionView?.collectionViewLayout as! FlowLayout
+            layout.deletesItems = selected
+            dataSource.deleteItemsAtIndexPaths(selected)
 			collectionView?.deleteItems(at: selected)
 			navigationController?.isToolbarHidden = true
 		}
@@ -119,5 +129,10 @@ extension MainViewController {
         section.count = dataSource.numberOfParksInSection(indexPath.section)
         view.section  = section
         return view
+    }
+    override func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        
+        dataSource.moveParkAtIndexPath(sourceIndexPath, toIndexPath: destinationIndexPath)
+        
     }
 }
