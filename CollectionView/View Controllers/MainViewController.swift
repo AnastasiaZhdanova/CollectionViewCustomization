@@ -12,6 +12,7 @@ class MainViewController: UICollectionViewController {
 		let width = view.frame.size.width / 3
 		let layout = collectionView?.collectionViewLayout as! UICollectionViewFlowLayout
 		layout.itemSize = CGSize(width:width, height:width)
+        layout.sectionHeadersPinToVisibleBounds = true
 		// Refresh control
 		let refresh = UIRefreshControl()
 		refresh.addTarget(self, action: #selector(self.refresh), for: UIControl.Event.valueChanged)
@@ -56,7 +57,7 @@ class MainViewController: UICollectionViewController {
 	}
 	
 	@IBAction func addItem() {
-		let index = dataSource.newRandomPark()
+		let index = dataSource.indexPathForNewRandomPark()
 		collectionView?.insertItems(at: [index])
 	}
 	
@@ -76,15 +77,13 @@ class MainViewController: UICollectionViewController {
 
 extension MainViewController {
 	override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-		return dataSource.count
+		return dataSource.numberOfParksInSection(section)
 	}
 	
 	override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
 		let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CollectionViewCell", for: indexPath) as! CollectionViewCell
-		if let park = dataSource.parkForItemAtIndexPath(indexPath) {
-			cell.titleLabel.text = park.name
-			cell.isEditing = isEditing
-		}
+		cell.park = dataSource.parkForItemAtIndexPath(indexPath)
+        cell.isEditing = isEditing
 		return cell
 	}
 	
@@ -104,4 +103,21 @@ extension MainViewController {
 			}
 		}
 	}
+    
+   override func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return dataSource.numberOfSections
+    }
+    
+    
+    
+    override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        
+        let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "SectionHeader", for: indexPath) as! SectionHeader
+     //   view.title = dataSource.titleForSectionAtIndexPath(indexPath)
+        let section = Section()
+        section.title = dataSource.titleForSectionAtIndexPath(indexPath)
+        section.count = dataSource.numberOfParksInSection(indexPath.section)
+        view.section  = section
+        return view
+    }
 }
